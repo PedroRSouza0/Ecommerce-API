@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user #LoginManager vai gerenciar que esta logado ou nao # UserMixin - Uso comoo herança para aproveitar os métodos de login
@@ -31,6 +31,9 @@ class CartItem(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
 
+@application.route('/app')
+def frontend():
+    return render_template('index.html')
 # Autenticação
 @login_manager.user_loader
 def load_user(user_id):

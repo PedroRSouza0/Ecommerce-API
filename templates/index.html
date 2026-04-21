@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlaskShop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="logo">Flask<em>Shop</em></div>
+  <div class="nav">
+    <button class="nav-btn active" onclick="showPage('login')">Login</button>
+    <button class="nav-btn" onclick="showPage('products')">Produtos</button>
+    <button class="nav-btn" onclick="showPage('manage')">Gerenciar</button>
+    <button class="nav-btn" onclick="showPage('cart')">Carrinho</button>
+  </div>
+  <div class="topbar-right">
+    <div class="user-pill">
+      <div class="dot" id="dot"></div>
+      <span id="user-label">desconectado</span>
+    </div>
+  </div>
+</nav>
+
+<main class="content">
+
+  <!-- ════ LOGIN PAGE ════ -->
+  <div id="page-login" class="page active">
+    <p class="page-title">Autenticação</p>
+    <p class="page-sub">Faça login para acessar os recursos protegidos da API.</p>
+
+    <div class="row">
+      <div>
+        <div class="section-label">Entrar</div>
+        <div class="card">
+          <div class="api-pill">POST /login</div>
+          <div class="field">
+            <label>Usuário</label>
+            <input type="text" id="login-user" placeholder="username" />
+          </div>
+          <div class="field">
+            <label>Senha</label>
+            <input type="password" id="login-pass" placeholder="password" />
+          </div>
+          <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar</button>
+          <div id="login-res" class="res"></div>
+        </div>
+
+        <div class="section-label">Sair</div>
+        <div class="card">
+          <div class="api-pill">POST /logout</div>
+          <button class="btn btn-full" onclick="doLogout()">Encerrar sessão</button>
+          <div id="logout-res" class="res"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Configuração</div>
+        <div class="card">
+          <div class="card-title">URL base da API</div>
+          <div class="field">
+            <label>Endereço</label>
+            <input type="text" id="api-base" value="http://localhost:5000" />
+          </div>
+          <p class="config-hint">
+            Altere este campo se sua API estiver rodando em outro endereço ou porta.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ PRODUCTS PAGE ════ -->
+  <div id="page-products" class="page">
+    <div class="page-header">
+      <div>
+        <p class="page-title">Produtos</p>
+        <p class="page-sub">Visualize e explore os produtos disponíveis.</p>
+      </div>
+      <button class="btn" onclick="loadProducts()">↻ Atualizar lista</button>
+    </div>
+    <div class="api-pill">GET /api/products · GET /api/products/:id</div>
+    <div id="products-grid" class="products-grid">
+      <div class="empty"><span>🛍</span>Clique em "Atualizar lista" para carregar os produtos</div>
+    </div>
+    <div id="products-res" class="res" style="margin-top:12px;"></div>
+  </div>
+
+  <!-- ════ MANAGE PAGE ════ -->
+  <div id="page-manage" class="page">
+    <p class="page-title">Gerenciar produtos</p>
+    <p class="page-sub">Adicione, edite e remova produtos. <span class="badge badge-amber">requer login</span></p>
+
+    <div class="row">
+      <div>
+        <div class="section-label">Adicionar produto</div>
+        <div class="card">
+          <div class="api-pill">POST /api/products/add</div>
+          <div class="field"><label>Nome *</label><input type="text" id="add-name" placeholder="Nome do produto" /></div>
+          <div class="field"><label>Preço *</label><input type="number" id="add-price" placeholder="0.00" step="0.01" /></div>
+          <div class="field"><label>Descrição</label><textarea id="add-desc" placeholder="Descrição opcional..."></textarea></div>
+          <button class="btn btn-primary" onclick="addProduct()">Adicionar produto</button>
+          <div id="add-res" class="res"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Editar produto</div>
+        <div class="card">
+          <div class="api-pill">PUT /api/products/update/:id</div>
+          <div class="field"><label>ID do produto *</label><input type="number" id="upd-id" placeholder="1" /></div>
+          <div class="field"><label>Novo nome</label><input type="text" id="upd-name" placeholder="Nome atualizado" /></div>
+          <div class="field"><label>Novo preço</label><input type="number" id="upd-price" placeholder="0.00" step="0.01" /></div>
+          <div class="field"><label>Nova descrição</label><textarea id="upd-desc" placeholder="Descrição atualizada..."></textarea></div>
+          <button class="btn btn-primary" onclick="updateProduct()">Salvar alterações</button>
+          <div id="upd-res" class="res"></div>
+        </div>
+
+        <div class="section-label">Remover produto</div>
+        <div class="card">
+          <div class="api-pill">DELETE /api/products/delete/:id</div>
+          <div class="field"><label>ID do produto *</label><input type="number" id="del-id" placeholder="1" /></div>
+          <button class="btn btn-danger" onclick="deleteProduct()">Deletar produto</button>
+          <div id="del-res" class="res"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ CART PAGE ════ -->
+  <div id="page-cart" class="page">
+    <p class="page-title">Carrinho</p>
+    <p class="page-sub">Gerencie os itens do carrinho. <span class="badge badge-amber">requer login</span></p>
+
+    <div class="row">
+      <div>
+        <div class="cart-section-header">
+          <div class="section-label" style="margin:0;">Meu carrinho</div>
+          <button class="btn btn-sm" onclick="loadCart()">↻ Atualizar</button>
+        </div>
+        <div class="card">
+          <div class="api-pill">GET /api/cart</div>
+          <div id="cart-items"><div class="empty"><span>🛒</span>Clique em "Atualizar" para ver seu carrinho</div></div>
+          <div id="cart-total-row" style="display:none;">
+            <hr />
+            <div class="cart-total-row">
+              <span class="cart-total-label">Total estimado</span>
+              <span class="cart-total-val" id="cart-total-val"></span>
+            </div>
+          </div>
+        </div>
+        <div id="cart-res" class="res"></div>
+
+        <div class="section-label">Finalizar compra</div>
+        <div class="card">
+          <div class="api-pill">POST /api/cart/checkout</div>
+          <p class="config-hint">Confirma o pedido e limpa o carrinho.</p>
+          <button class="btn btn-primary btn-full" onclick="doCheckout()">Finalizar compra</button>
+          <div id="checkout-res" class="res"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Adicionar item</div>
+        <div class="card">
+          <div class="api-pill">POST /api/cart/add/:id</div>
+          <div class="field"><label>ID do produto</label><input type="number" id="cart-add-id" placeholder="1" /></div>
+          <button class="btn btn-primary" onclick="addToCart()">Adicionar ao carrinho</button>
+          <div id="cart-add-res" class="res"></div>
+        </div>
+
+        <div class="section-label">Remover item</div>
+        <div class="card">
+          <div class="api-pill">DELETE /api/cart/remove/:id</div>
+          <div class="field"><label>ID do produto</label><input type="number" id="cart-rem-id" placeholder="1" /></div>
+          <button class="btn btn-danger" onclick="removeFromCart()">Remover do carrinho</button>
+          <div id="cart-rem-res" class="res"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
